@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: write  # Donne le droit de sauvegarder le fichier
 
-    steps:
+steps:
     # 1. Récupérer le code
     - name: Checkout code
       uses: actions/checkout@v3
@@ -25,6 +25,13 @@ jobs:
       with:
         python-version: '3.10' 
 
+    # --- ÉTAPE DE DEBUG AJOUTÉE ---
+    - name: 🕵️ DEBUG - List Files
+      run: |
+        echo "Voici la liste de TOUS les fichiers que je vois :"
+        ls -R
+    # -----------------------------
+
     # 3. Installer les librairies
     - name: Install dependencies
       run: |
@@ -32,11 +39,12 @@ jobs:
         pip install -r requirements.txt
 
     # 4. LANCER L'ENTRAÎNEMENT
-    # On force le CPU pour éviter les erreurs, bien que les serveurs GitHub soient sous Linux
     - name: Run Training Script
       run: |
         export CUDA_VISIBLE_DEVICES=-1
         python train_bot.py
+
+    # ... (le reste reste identique)
 
     # 5. Sauvegarder et Pousser le nouveau cerveau sur GitHub
     - name: Commit and Push new Model
