@@ -1,0 +1,49 @@
+name: Sentinel Auto-Training
+
+# DÉCLENCHEUR :
+# 1. Manuellement (bouton)
+# 2. Automatiquement tous les dimanches à minuit (UTC)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Donne le droit de sauvegarder le fichier
+
+    steps:
+    # 1. Récupérer le code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Installer Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' 
+
+    # 3. Installer les librairies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4. LANCER L'ENTRAÎNEMENT
+    # On force le CPU pour éviter les erreurs, bien que les serveurs GitHub soient sous Linux
+    - name: Run Training Script
+      run: |
+        export CUDA_VISIBLE_DEVICES=-1
+        python train_bot.py
+
+    # 5. Sauvegarder et Pousser le nouveau cerveau sur GitHub
+    - name: Commit and Push new Model
+      run: |
+        git config --global user.name "SentinelBot"
+        git config --global user.email "bot@sentinel.ai"
+        git add sentinel_v1.keras
+        # On ne commit que si le fichier a changé
+        git commit -m "🧠 Auto-Update: Cerveau ré-entraîné" || echo "Pas de changement"
+        git push
